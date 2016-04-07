@@ -64,11 +64,12 @@ from .exceptions import LDAPUnknownStrategyError, LDAPBindError, LDAPUnknownAuth
 from ..utils.conv import escape_bytes, prepare_for_stream, check_json_dict, format_json
 from ..utils.log import log, log_enabled, ERROR, BASIC, PROTOCOL, get_library_log_hide_sensitive_data
 
+from ..strategy.mockSync import MockSyncStrategy  # not used yet
 try:
-    from ..strategy.mockSync import MockSyncStrategy  # not used yet
+    #from ..strategy.mockSync import MockSyncStrategy  # not used yet
     from ..strategy.mockAsync import MockAsyncStrategy  # not used yet
 except ImportError:
-    MockSyncStrategy = NotImplemented
+    #MockSyncStrategy = NotImplemented
     MockAsyncStrategy = NotImplemented
 
 
