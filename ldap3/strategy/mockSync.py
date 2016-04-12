@@ -1,3 +1,4 @@
+import copy
 import re
 from ..strategy.sync import SyncStrategy
 from .. import RESPONSE_COMPLETE
@@ -73,6 +74,9 @@ mock_groups = {
                  },
 }
 
+MOCK_BIND_RESPONSE = [{'dn': u'', 'saslCreds': None, 'description': 'success', 'result': 0, 'message': u'', 'type': 'bindResponse'}]
+MOCK_SEARCH_RES_DONE = {'dn': u'', 'referrals': None, 'description': 'success', 'result': 0, 'message': u'', 'type': 'searchResDone'}
+
 
 class MockSyncStrategy(SyncStrategy):
     """
@@ -88,39 +92,18 @@ class MockSyncStrategy(SyncStrategy):
         self.receiving_mock = None
 
     def _build_user_response(self, user):
-        user_dict_resp = mock_users[user]
+        user_dict_resp = copy.deepcopy(mock_users[user])
         # TODO: convert raw_attributes to bytestrings
         user_dict_resp['raw_attributes'] = user_dict_resp['attributes']
         user_dict_resp['type'] = 'searchResEntry'
         return user_dict_resp
 
     def _build_group_response(self, group):
-        group_dict_resp = mock_groups[group]
+        group_dict_resp = copy.deepcopy(mock_groups[group])
         # TODO: convert raw_attributes to bytestrings
         group_dict_resp['raw_attributes'] = group_dict_resp['attributes']
         group_dict_resp['type'] = 'searchResEntry'
         return group_dict_resp
-
-    def _build_searchResDone_dict(self):
-        searchResDone_dict = {}
-        searchResDone_dict['dn'] = u''
-        searchResDone_dict['referrals'] = None
-        searchResDone_dict['description'] = 'success'
-        searchResDone_dict['result'] = 0
-        searchResDone_dict['message'] = u''
-        searchResDone_dict['type'] = 'searchResDone'
-        return searchResDone_dict
-
-    def _mock_bind_response(self):
-        bind_dict_resp = {}
-        bind_dict_resp['dn'] = u''
-        bind_dict_resp['saslCreds'] = None
-        bind_dict_resp['description'] = 'success'
-        bind_dict_resp['result'] = 0
-        bind_dict_resp['message'] = u''
-        bind_dict_resp['type'] = 'bindResponse'
-        return [bind_dict_resp]
-
 
     def _mock_search_response(self, request):
         import pdb
@@ -138,22 +121,22 @@ class MockSyncStrategy(SyncStrategy):
 
         receiving_mock = []
         if search_base == USER_TREE_DN:
-            if search_eq is not None and search_attr == 'uid':
-                receiving_mock.append(self._build_user_response(search_value))
-            elif search_eq is None:
+            if search_eq is None:
                 receiving_mock.extend(
                     [self._build_user_response(user)
                      for user in mock_users.iterkeys()])
+            elif search_attr == 'uid':
+                receiving_mock.append(self._build_user_response(search_value))
             else:
                 # FIXME: raise an exception
                 pass
         elif search_base == GROUP_TREE_DN:
-            if search_eq is not None and search_attr == 'cn':
-                receiving_mock.append(self._build_group_response(search_value))
-            elif search_eq is None:
+            if search_eq is None:
                 receiving_mock.extend(
                     [self._build_group_response(group)
                      for group in mock_groups.iterkeys()])
+            elif search_attr == 'cn':
+                receiving_mock.append(self._build_group_response(search_value))
             else:
                 # FIXME: raise an exception
                 pass
@@ -161,7 +144,7 @@ class MockSyncStrategy(SyncStrategy):
             user_search = search_base.split(',')[0].split('=')[1]
             if user_search in mock_users.keys():
                 receiving_mock.append(self._build_user_response(user_search))
-        receiving_mock.append(self._build_searchResDone_dict())
+        receiving_mock.append(MOCK_SEARCH_RES_DONE)
         return receiving_mock
 
     def send(self, message_type, request, controls=None):
@@ -170,7 +153,7 @@ class MockSyncStrategy(SyncStrategy):
         if message_type == 'searchRequest':
             self.receiving_mock = self._mock_search_response(request)
         elif message_type == 'bindRequest':
-            self.receiving_mock = self._mock_bind_response()
+            self.receiving_mock = MOCK_BIND_RESPONSE
         self.receiving_mock.append(RESPONSE_COMPLETE)
 
         return super(MockSyncStrategy, self).send(message_type,
