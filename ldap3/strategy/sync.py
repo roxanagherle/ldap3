@@ -114,8 +114,6 @@ class SyncStrategy(BaseStrategy):
 
         if log_enabled(NETWORK):
             log(NETWORK, 'received %d ldap messages via <%s>', len(messages), self.connection)
-        print messages
-        import pdb; pdb.set_trace()
         return messages
 
     def post_send_single_response(self, message_id):
@@ -167,6 +165,7 @@ class SyncStrategy(BaseStrategy):
                             self.connection._usage.update_received_message(len(response))
                         if self.connection.fast_decoder:
                             ldap_resp = decode_message_fast(response)
+                            import pdb; pdb.set_trace()
                             dict_response = self.decode_response_fast(ldap_resp)
                         else:
                             ldap_resp, _ = decoder.decode(response, asn1Spec=LDAP_MESSAGE_TEMPLATE)  # unprocessed unused because receiving() waits for the whole message
