@@ -274,7 +274,7 @@ class BaseStrategy(object):
         Send an LDAP message
         Returns the message_id
         """
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         self.connection.request = None
         if self.connection.listening:
             if self.connection.sasl_in_progress and message_type not in ['bindRequest']:  # as per RFC4511 (4.2.1)
@@ -744,7 +744,7 @@ class BaseStrategy(object):
         return response, result
 
     def sending(self, ldap_message):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         exc = None
         if log_enabled(NETWORK):
             log(NETWORK, 'sending 1 ldap message for <%s>', self.connection)
